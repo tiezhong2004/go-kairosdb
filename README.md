@@ -9,6 +9,7 @@ A go client for [KairosDB](http://kairosdb.github.io/).
 ##获取 go-kairosdb
 
 go get github.com/tiezhong2004/go-kairosdb
+
 go get github.com/stretchr/testify/assert
 ```
 
