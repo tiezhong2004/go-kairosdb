@@ -4,7 +4,7 @@
 A go client for [KairosDB](http://kairosdb.github.io/).
 
 ##介绍
-*go-kairosdb* 是kairosdb 时序数据库的golang 语言版本的client sdk包，从github.com/ajityagaty/go-kairosdb复制过来，并新增扩展了groupby 分组查询功能。
+*go-kairosdb* 是kairosdb 时序数据库的golang 语言版本的client sdk包，从github.com/ajityagaty/go-kairosdb复制过来，并新增扩展了groupby 分组查询功能，filter过滤聚合器以及gzip 数据传输。
 
 ##获取 go-kairosdb
 
@@ -146,15 +146,22 @@ if healthResp.GetStatusCode() == http.StatusNoContent {
 	fmt.Println("Internal error")
 }
 
-###groupby 分组查询
+###groupby 分组查询和filter过滤聚合方法
 
 groupByTags := builder.CreateTagsGroupBy([]string{"project"})
+
+aggFilterLT := builder.CreateFilterAggregator(builder.FilterOp_LT, 28098890876)
+
 cli := client.NewHttpClient("http://127.0.0.1:8008")
+
 qb := builder.NewQueryBuilder()
+
 for key, _ := range PointTagCfg {
-	qb.SetRelativeStart(1, utils.YEARS).
-		AddMetric(key).AddGrouper(groupByTags)
+
+	qb.SetRelativeStart(1, utils.YEARS).AddMetric(key).AddGrouper(groupByTags).AddAggregator(aggFilterLT)
+	
 	queryResp, _ := cli.Query(qb)
+	
 	fmt.Println(queryResp.QueriesArr)
 }
 
