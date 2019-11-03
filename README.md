@@ -158,7 +158,10 @@ qb := builder.NewQueryBuilder()
 
 for key, _ := range PointTagCfg {
 
-	qb.SetRelativeStart(1, utils.YEARS).AddMetric(key).AddGrouper(groupByTags).AddAggregator(aggFilterLT)
+	qb.SetRelativeStart(1, utils.YEARS).
+	AddMetric(key).
+	AddGrouper(groupByTags).
+	AddAggregator(aggFilterLT)
 	
 	queryResp, _ := cli.Query(qb)
 	
