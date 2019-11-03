@@ -57,6 +57,15 @@ func (dp *DataPoint) Float64Value() (float64, error) {
 	return val, nil
 }
 
+//20191101 add by wutz (no need)
+func (dp *DataPoint) Float32Value() (float32, error) {
+	val, ok := dp.value.(float32)
+	if !ok {
+		return 0, ErrorDataPointFloat32
+	}
+	return val, nil
+}
+
 func (dp *DataPoint) MarshalJSON() ([]byte, error) {
 	data := []interface{}{dp.timestamp, dp.value}
 	return json.Marshal(data)

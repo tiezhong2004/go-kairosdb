@@ -19,7 +19,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-
+    "compress/gzip"
 	"github.com/tiezhong2004/go-kairosdb/builder"
 	"github.com/tiezhong2004/go-kairosdb/response"
 )
@@ -125,18 +125,35 @@ func (hc *httpClient) sendRequest(url, method string) (*http.Response, error) {
 func (hc *httpClient) httpRespToResponse(httpResp *http.Response) (*response.Response, error) {
 	resp := &response.Response{}
 	resp.SetStatusCode(httpResp.StatusCode)
-
 	if httpResp.StatusCode != http.StatusNoContent {
 		// If the request has failed, then read the response body.
 		defer httpResp.Body.Close()
-		contents, err := ioutil.ReadAll(httpResp.Body)
-		if err != nil {
-			return nil, err
-		} else {
-			// Unmarshal the contents into Response object.
-			err = json.Unmarshal(contents, resp)
+		var contents []byte
+		var err error
+		defer httpResp.Body.Close()
+		switch httpResp.Header.Get("Content-Encoding") {
+		case "gzip":
+			reader, _ := gzip.NewReader(httpResp.Body)
+			contents, err = ioutil.ReadAll(reader)
 			if err != nil {
 				return nil, err
+			} else {
+				// Unmarshal the contents into Response object.
+				err = json.Unmarshal(contents, resp)
+				if err != nil {
+					return nil, err
+				}
+			}
+		default:
+			contents, err = ioutil.ReadAll(httpResp.Body)
+			if err != nil {
+				return nil, err
+			} else {
+				// Unmarshal the contents into Response object.
+				err = json.Unmarshal(contents, resp)
+				if err != nil {
+					return nil, err
+				}
 			}
 		}
 	}
@@ -146,10 +163,21 @@ func (hc *httpClient) httpRespToResponse(httpResp *http.Response) (*response.Res
 
 func (hc *httpClient) httpRespToQueryResponse(httpResp *http.Response) (*response.QueryResponse, error) {
 	// Read the HTTP response body.
+	var contents []byte
+	var err error
 	defer httpResp.Body.Close()
-	contents, err := ioutil.ReadAll(httpResp.Body)
-	if err != nil {
-		return nil, err
+	switch httpResp.Header.Get("Content-Encoding") {
+	case "gzip":
+		reader, _ := gzip.NewReader(httpResp.Body)
+		contents, err = ioutil.ReadAll(reader)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		contents, err = ioutil.ReadAll(httpResp.Body)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	qr := response.NewQueryResponse(httpResp.StatusCode)
@@ -186,21 +214,42 @@ func (hc *httpClient) get(url string) (*response.GetResponse, error) {
 }
 
 func (hc *httpClient) postData(url string, data []byte) (*response.Response, error) {
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
+	//var zBuf bytes.Buffer
+	//wzip := gzip.NewWriter(&zBuf)
+	//if _, err := wzip.Write(data); err != nil { }
+	//defer wzip.Close()
+	//resp, err := http.Post(url, "application/json; Accept-Encoding=gzip, deflate", &zBuf)
+	c := http.Client{}
+	resp, err := http.NewRequest("POST", url, bytes.NewReader(data))
 	if err != nil {
 		return nil, err
 	}
+	resp.Header.Set("Content-Type", "application/json")
+	resp.Header.Set("Accept-Encoding", "gzip, deflate")
+	respDo, err := c.Do(resp)
+	if err != nil {
+		return nil, err
+	}
+	defer respDo.Body.Close()
 
-	return hc.httpRespToResponse(resp)
+	return hc.httpRespToResponse(respDo)
 }
 
 func (hc *httpClient) postQuery(url string, data []byte) (*response.QueryResponse, error) {
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
+	c := http.Client{}
+	resp, err := http.NewRequest("POST", url, bytes.NewReader(data))
 	if err != nil {
 		return nil, err
 	}
+	resp.Header.Set("Content-Type", "application/json")
+	resp.Header.Set("Accept-Encoding", "gzip, deflate")
+	respDo, err := c.Do(resp)
+	if err != nil {
+		return nil, err
+	}
+	defer respDo.Body.Close()
 
-	return hc.httpRespToQueryResponse(resp)
+	return hc.httpRespToQueryResponse(respDo)
 }
 
 func (hc *httpClient) delete(url string) (*response.Response, error) {

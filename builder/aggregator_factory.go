@@ -27,6 +27,17 @@ const (
 	TRIM_BOTH  TrimType = "both"
 )
 
+//增加过滤聚合器 20191102 by wutz
+type FilterOp string
+
+const (
+	FilterOp_EQ  FilterOp = "equal"
+	FilterOp_LT  FilterOp = "lt"
+	FilterOp_LTE  FilterOp = "lte"
+	FilterOp_GT  FilterOp = "gt"
+	FilterOp_GTE  FilterOp = "gte"
+)
+
 // Creates an aggregator that returns the minimum values for each time period as specified.
 // For example, "5 minutes" would returns the minimum value for each 5 minute period.
 //
@@ -204,4 +215,17 @@ func CreateTrimAggregator(trim TrimType) Aggregator {
 	m["name"] = "trim"
 	m["trim"] = trim
 	return aggregator.NewCustomAggregator(m)
+}
+
+//增加过滤聚合器 20191102 by wutz
+// Creates an aggregator that filters datapoints according to the filter operation.
+// @param operation what to filter on
+// @param threshold the value the operation is performed on. If the operation is lt, then a null data point is returned if the data point is less than the threshold.
+// @return filter aggregator
+func CreateFilterAggregator(operation FilterOp , threshold float64) Aggregator {
+	m := make(map[string]interface{})
+	m["name"] = "filter"
+	m["filter_op"] = operation
+	m["threshold"] = threshold
+    return  aggregator.NewCustomAggregator(m)
 }

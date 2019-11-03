@@ -25,6 +25,7 @@ var (
 
 	// Data Point Errors.
 	ErrorDataPointInt64   = errors.New("Not an int64 data value")
+	ErrorDataPointFloat32 = errors.New("Not a float32 data value")
 	ErrorDataPointFloat64 = errors.New("Not a float64 data value")
 
 	// Query Metric Errors.
