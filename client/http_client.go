@@ -28,7 +28,8 @@ var (
 	api_version      = "/api/v1"
 	datapoints_ep    = api_version + "/datapoints"
 	deldatapoints_ep = api_version + "/datapoints/delete"
-	query_ep         = api_version + "/datapoints/query/tags"
+	query_ep         = api_version + "/datapoints/query"
+	querytags_ep         = api_version + "/datapoints/query/tags"
 	health_ep        = api_version + "/health/check"
 	delmetric_ep     = api_version + "/metric/"
 	metricnames_ep   = api_version + "/metricnames"
@@ -72,6 +73,16 @@ func (hc *httpClient) Query(qb builder.QueryBuilder) (*response.QueryResponse, e
 	}
 
 	return hc.postQuery(hc.serverAddress+query_ep, data)
+}
+
+func (hc *httpClient) QueryTags(qb builder.QueryBuilder) (*response.QueryResponse, error) {
+	// Get the JSON representation of the query.
+	data, err := qb.Build()
+	if err != nil {
+		return nil, err
+	}
+
+	return hc.postQuery(hc.serverAddress+querytags_ep, data)
 }
 
 // Sends metrics from the builder to the KairosDB server.
