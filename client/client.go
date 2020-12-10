@@ -31,6 +31,8 @@ type Client interface {
 
 	// Queries KairosDB using the query built using builder.
 	Query(qb builder.QueryBuilder) (*response.QueryResponse, error)
+	
+	QueryTags(qb builder.QueryBuilder) (*response.QueryResponse, error)
 
 	// Sends metrics from the builder to the KairosDB server.
 	PushMetrics(mb builder.MetricBuilder) (*response.Response, error)
