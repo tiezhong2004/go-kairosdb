@@ -28,7 +28,7 @@ var (
 	api_version      = "/api/v1"
 	datapoints_ep    = api_version + "/datapoints"
 	deldatapoints_ep = api_version + "/datapoints/delete"
-	query_ep         = api_version + "/datapoints/query"
+	query_ep         = api_version + "/datapoints/query/tags"
 	health_ep        = api_version + "/health/check"
 	delmetric_ep     = api_version + "/metric/"
 	metricnames_ep   = api_version + "/metricnames"
